@@ -1,10 +1,11 @@
 FROM node:20-alpine AS base
+RUN npm install -g pnpm
 
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm install --legacy-peer-deps
+COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -20,7 +21,7 @@ ENV NEXT_TELEMETRY_DISABLED 1
 ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
 ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
-RUN npm run build
+RUN pnpm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
